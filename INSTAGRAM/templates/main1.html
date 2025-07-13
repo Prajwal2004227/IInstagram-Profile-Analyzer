@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InstaInsight - Instagram Profile & Sentiment Analysis</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #e654d2;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 50px auto;
+            background-color: #efecee;
+            padding: 30px;
+            box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #4CAF50;
+            font-size: 36px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            font-weight: bold;
+            font-size: 16px;
+            color: #333;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 12px;
+            margin-top: 8px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        button {
+            padding: 12px 20px;
+            background-color: #4CAF50;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        #profileInfo, #sentimentResult, #riskResult {
+            margin-top: 30px;
+        }
+
+        h2 {
+            color: #333;
+            font-size: 24px;
+        }
+
+        p {
+            font-size: 18px;
+            color: #555;
+        }
+
+        img {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            border: 3px solid #4CAF50;
+            margin-bottom: 20px;
+        }
+
+        .result-container {
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .result-container p {
+            font-size: 18px;
+        }
+
+        .error {
+            color: red;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>InstaInsight</h1>
+        <p style="text-align: center;">Your Ultimate Instagram Profile & Sentiment Analysis Tool</p>
+
+        <div class="form-group">
+            <label for="username">Enter Instagram Username for Profile Info:</label>
+            <input type="text" id="username" name="username" placeholder="Enter Instagram username">
+            <button onclick="getProfileInfo()">Get Profile Info</button>
+        </div>
+
+        <div id="profileInfo" class="result-container"></div>
+
+        <div class="form-group">
+            <label for="text">Enter Text for Sentiment Analysis:</label>
+            <textarea id="text" name="text" rows="4" placeholder="Type text here..."></textarea>
+            <button onclick="analyzeSentiment()">Analyze Sentiment</button>
+        </div>
+
+        <div id="sentimentResult" class="result-container"></div>
+
+        <div class="form-group">
+            <label for="usernameRisk">Enter Instagram Username for Risk Analysis:</label>
+            <input type="text" id="usernameRisk" name="usernameRisk" placeholder="Enter Instagram username">
+            <button onclick="profileRiskAnalysis()">Analyze Risk</button>
+        </div>
+
+        <div id="riskResult" class="result-container"></div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        // Get Profile Info
+        function getProfileInfo() {
+            const username = document.getElementById('username').value;
+            $.post('/get_profile_info', { username: username }, function(data) {
+                let profileHTML = '';
+                if (data.error) {
+                    profileHTML = `<p class="error">${data.error}</p>`;
+                } else {
+                    profileHTML = `
+                        <h2>Profile Info</h2>
+                        <img src="${data.profile_picture_url}" alt="Profile Picture">
+                        <p><strong>Username:</strong> ${data.username}</p>
+                        <p><strong>User ID:</strong> ${data.user_id}</p>
+                        <p><strong>Posts Count:</strong> ${data.posts_count}</p>
+                        <p><strong>Followers Count:</strong> ${data.followers_count}</p>
+                        <p><strong>Following Count:</strong> ${data.following_count}</p>
+                        <p><strong>Bio:</strong> ${data.bio}</p>
+                        <p><strong>External URL:</strong> ${data.external_url}</p>
+                    `;
+                }
+                document.getElementById('profileInfo').innerHTML = profileHTML;
+            });
+        }
+
+        // Sentiment Analysis
+        function analyzeSentiment() {
+            const text = document.getElementById('text').value;
+            $.post('/analyze_sentiment', { text: text }, function(data) {
+                let sentiment = '';
+                if (data.sentiment > 0) {
+                    sentiment = 'Positive';
+                } else if (data.sentiment < 0) {
+                    sentiment = 'Negative';
+                } else {
+                    sentiment = 'Neutral';
+                }
+                document.getElementById('sentimentResult').innerHTML = `
+                    <h2>Sentiment Analysis Result</h2>
+                    <p><strong>Sentiment Polarity:</strong> ${data.sentiment}</p>
+                    <p><strong>Sentiment:</strong> ${sentiment}</p>
+                `;
+            });
+        }
+
+        // Profile Risk Analysis
+        function profileRiskAnalysis() {
+            const username = document.getElementById('usernameRisk').value;
+            $.post('/profile_risk_analysis', { username: username }, function(data) {
+                document.getElementById('riskResult').innerHTML = `
+                    <h2>Profile Risk Analysis</h2>
+                    <p>${data.result}</p>
+                `;
+            });
+        }
+    </script>
+</body>
+</html>
